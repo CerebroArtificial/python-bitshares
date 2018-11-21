@@ -1,4 +1,4 @@
-from .bitshares import BitShares
+from .bitshares import Chain as BitShares
 
 __all__ = [
     "bitshares"
@@ -17,5 +17,6 @@ __all__ = [
     "committee",
     "vesting",
     "proposal",
-    "message"
+    "message",
+    "chainspec"
 ]
