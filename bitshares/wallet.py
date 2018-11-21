@@ -1,18 +1,11 @@
 import logging
-import os
-from graphenebase import bip38
-from bitsharesbase.account import PrivateKey
 from .storage import get_default_key_store, InRamPlainKeyStore
 from .instance import BlockchainInstance
-from .account import Account
 from .exceptions import (
     KeyNotFound,
     InvalidWifError,
     WalletExists,
-    WalletLocked,
-    NoWalletException,
     OfflineHasNoRPCException,
-    KeyAlreadyInStoreException
 )
 
 
@@ -45,7 +38,15 @@ class Wallet():
           any account. This mode is only used for *foreign*
           signatures!
     """
-    def __init__(self, *args, **kwargs):
+    def __init__(
+        self,
+        *args,
+        privatekey_cls=None,
+        **kwargs
+    ):
+        assert privatekey_cls
+        self._privatekey_cls = privatekey_cls
+
         BlockchainInstance.__init__(self, *args, **kwargs)
 
         # Compatibility after name change from wif->keys
@@ -75,7 +76,7 @@ class Wallet():
     @property
     def rpc(self):
         if not self.blockchain.is_connected():
-            raise OfflineHasNoRPCException("No RPC available in offline mode!")
+            raise OfflineHasNoRPCException("Not connected!")
         return self.blockchain.rpc
 
     def setKeys(self, loadkeys):
@@ -89,7 +90,9 @@ class Wallet():
         elif not isinstance(loadkeys, list):
             loadkeys = [loadkeys]
         for wif in loadkeys:
-            pub = format(PrivateKey(str(wif)).pubkey, self.prefix)
+            pub = format(
+                self._privatekey_cls(
+                    str(wif)).pubkey, self.prefix)
             self.store.add(str(wif), pub)
 
     def is_encrypted(self):
@@ -155,12 +158,13 @@ class Wallet():
         """ Add a private key to the wallet database
         """
         try:
-            pub = format(PrivateKey(str(wif)).pubkey, self.prefix)
+            pub = format(
+                self._privatekey_cls(
+                    str(wif)).pubkey, self.prefix)
         except:
             raise InvalidWifError("Invalid Key format!")
-        if str(pub) in self.store:
-            raise KeyAlreadyInStoreException("Key already in the store")
-        self.store.add(str(wif), str(pub))
+        if str(pub) not in self.store:
+            self.store.add(str(wif), str(pub))
 
     def getPrivateKeyForPublicKey(self, pub):
         """ Obtain the private key for a given public key
@@ -218,7 +222,9 @@ class Wallet():
     def getAccountFromPrivateKey(self, wif):
         """ Obtain account name from private key
         """
-        pub = format(PrivateKey(wif).pubkey, self.prefix)
+        pub = format(
+            self._privatekey_cls(wif).pubkey,
+            self.prefix)
         return self.getAccountFromPublicKey(pub)
 
     def getAccountsFromPublicKey(self, pub):
@@ -247,7 +253,7 @@ class Wallet():
         """
         for id in self.getAccountsFromPublicKey(str(pub)):
             try:
-                account = Account(id, blockchain_instance=self.blockchain)
+                account = self.rpc.get_account(name)
             except:
                 continue
             yield {"name": account["name"],

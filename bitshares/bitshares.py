@@ -2,6 +2,9 @@ import logging
 
 from .storage import get_default_config_store
 
+# chain specific modules
+from . import chainspec
+
 from .interface_chain import TxInterface
 from .interface_wallet import WalletInterface
 from .interface_builder import BuilderInterface
@@ -104,6 +107,9 @@ class Chain(
         This class also deals with edits, votes and reading content.
     """
 
+    # Below, we enable access to chain specific classes for those
+    # classes we inherit
+
     def __init__(self,
                  node="",
                  rpcuser="",
@@ -123,10 +129,26 @@ class Chain(
         )
 
         # Initialize dependencies
-        InterfaceConnection.__init__(self, node, rpcuser, rpcpassword, **kwargs)
-        TxInterface.__init__(self, **kwargs)
-        WalletInterface.__init__(self, **kwargs)
-        BuilderInterface.__init__(self, *kwargs)
+        # We here provide "chainspec" as a module that contains
+        # all classes that are chain-specific
+        InterfaceConnection.__init__(
+            self,
+            node,
+            rpcuser, rpcpassword,
+            chainspec=chainspec,
+            **kwargs)
+        TxInterface.__init__(
+            self,
+            chainspec=chainspec,
+            **kwargs
+        )
+        WalletInterface.__init__(self, 
+            chainspec=chainspec,
+            **kwargs)
+        BuilderInterface.__init__(
+            self,
+            chainspec=chainspec,
+            **kwargs)
 
     def set_blocking(self, block=True):
         """ This sets a flag that forces the broadcast to block until the

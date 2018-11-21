@@ -1,14 +1,22 @@
-from .account import Account
-from .wallet import Wallet
-from .transactionbuilder import TransactionBuilder, ProposalBuilder
-
 
 class WalletInterface:
 
-    def __init__(self, *args, **kwargs):
+    def __init__(
+        self,
+        *args,
+        chainspec=None,
+        **kwargs
+    ):
+        assert chainspec
+
+        self._privatekey_cls = chainspec.PrivateKey
+        self._account_cls = chainspec.Account
+        self._proposalbuilder_cls = chainspec.ProposalBuilder
+        self._txbuilder_cls = chainspec.TransactionBuilder
         self.wallet = kwargs.get(
             "wallet",
-            Wallet(
+            chainspec.Wallet(
+                privatekey_cls=self._privatekey_cls,
                 blockchain_instance=self,
                 **kwargs))
 
@@ -18,7 +26,7 @@ class WalletInterface:
     def set_default_account(self, account):
         """ Set the default account to be used
         """
-        Account(account)
+        self._account_cls(account)
         self.config["default_account"] = account
 
     def newWallet(self, pwd):
@@ -48,7 +56,7 @@ class WalletInterface:
             :param string permission: The required permission for
                 signing (active, owner, posting)
             :param object append_to: This allows to provide an instance of
-                ProposalsBuilder (see :func:`bitshares.new_proposal`) or
+                ProposalBuilder (see :func:`bitshares.new_proposal`) or
                 TransactionBuilder (see :func:`bitshares.new_tx()`) to specify
                 where to put a specific operation.
 
@@ -76,10 +84,10 @@ class WalletInterface:
             # Append to the append_to and return
             append_to = kwargs["append_to"]
             parent = append_to.get_parent()
-            assert isinstance(append_to, (TransactionBuilder, ProposalBuilder))
+            assert isinstance(append_to, (self._txbuilder_cls, self._proposalbuilder_cls))
             append_to.appendOps(ops)
             # Add the signer to the buffer so we sign the tx properly
-            if isinstance(append_to, ProposalBuilder):
+            if isinstance(append_to, self._proposalbuilder_cls):
                 parent.appendSigner(append_to.proposer, permission)
             else:
                 parent.appendSigner(account, permission)
@@ -129,7 +137,7 @@ class WalletInterface:
                 of the transactions.
         """
         if tx:
-            txbuffer = TransactionBuilder(tx, blockchain_instance=self)
+            txbuffer = self._txbuilder_cls(tx, blockchain_instance=self)
         else:
             txbuffer = self.txbuffer
         txbuffer.appendWif(wifs)
@@ -144,7 +152,7 @@ class WalletInterface:
         """
         if tx:
             # If tx is provided, we broadcast the tx
-            return TransactionBuilder(
+            return self._txbuilder_cls(
                 tx, blockchain_instance=self).broadcast()
         else:
             return self.txbuffer.broadcast()

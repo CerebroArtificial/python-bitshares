@@ -1,14 +1,22 @@
-from .transactionbuilder import TransactionBuilder, ProposalBuilder
-
-
 class BuilderInterface:
 
-    def __init__(self, *args, **kwargs):
+    def __init__(
+        self,
+        *args,
+        chainspec=None,
+        **kwargs
+    ):
+
+        assert chainspec
+
         # Legacy Proposal attributes
         self.proposer = kwargs.get("proposer", None)
         self.proposal_expiration = int(
             kwargs.get("proposal_expiration", 60 * 60 * 24))
         self.proposal_review = int(kwargs.get("proposal_review", 0))
+
+        self._transactionbuildercls = chainspec.TransactionBuilder
+        self._proposalbuildercls = chainspec.ProposalBuilder
 
         self.clear()
 
@@ -79,7 +87,7 @@ class BuilderInterface:
                 proposer = self.config["default_account"]
 
         # Else, we create a new object
-        proposal = ProposalBuilder(
+        proposal = self._proposalbuildercls(
             proposer,
             proposal_expiration,
             proposal_review,
@@ -97,7 +105,7 @@ class BuilderInterface:
 
             :returns int txid: id of the new txbuffer
         """
-        builder = TransactionBuilder(
+        builder = self._transactionbuildercls(
             *args,
             blockchain_instance=self,
             **kwargs
