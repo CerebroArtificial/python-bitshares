@@ -16,7 +16,7 @@ class WalletInterface:
         self.wallet = kwargs.get(
             "wallet",
             chainspec.Wallet(
-                privatekey_cls=self._privatekey_cls,
+                chainspec=chainspec,
                 blockchain_instance=self,
                 **kwargs))
 

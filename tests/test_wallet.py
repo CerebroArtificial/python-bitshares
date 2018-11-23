@@ -1,5 +1,5 @@
 import unittest
-from bitshares import storage
+from bitshares import storage, chainspec
 from bitshares.wallet import Wallet
 from bitshares.exceptions import KeyNotFound
 from bitsharesbase.account import PrivateKey
@@ -14,7 +14,7 @@ class Testcases(unittest.TestCase):
     def test_init(self):
         config = storage.InRamConfigurationStore()
         key_store = storage.InRamPlainKeyStore(config=config)
-        wallet = Wallet(key_store=key_store)
+        wallet = Wallet(key_store=key_store, chainspec=chainspec)
         # InRamStore does not come with a default key
         self.assertFalse(wallet.created())
 

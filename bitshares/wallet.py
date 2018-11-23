@@ -41,11 +41,11 @@ class Wallet():
     def __init__(
         self,
         *args,
-        privatekey_cls=None,
+        chainspec=None,
         **kwargs
     ):
-        assert privatekey_cls
-        self._privatekey_cls = privatekey_cls
+        assert chainspec
+        self._privatekey_cls = chainspec.PrivateKey
 
         BlockchainInstance.__init__(self, *args, **kwargs)
 

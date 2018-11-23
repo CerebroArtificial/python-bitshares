@@ -133,8 +133,7 @@ class Chain(
         # all classes that are chain-specific
         InterfaceConnection.__init__(
             self,
-            node,
-            rpcuser, rpcpassword,
+            node, rpcuser, rpcpassword,
             chainspec=chainspec,
             **kwargs)
         TxInterface.__init__(
