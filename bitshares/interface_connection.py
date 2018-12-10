@@ -8,7 +8,7 @@ class InterfaceConnection:
         chainspec=None,
         **kwargs
     ):
-        assert chainspec 
+        assert chainspec
 
         self._instance_module = chainspec.instance
         self._rpc_cls = chainspec.RPC
@@ -34,13 +34,13 @@ class InterfaceConnection:
                 rpcuser="",
                 rpcpassword="",
                 **kwargs):
-        """ Connect to BitShares network (internal use only)
+        """ Connect to the blockchain backend (internal use only)
         """
         if not node:
             if "node" in self.config:
                 node = self.config["node"]
             else:
-                raise ValueError("A BitShares node needs to be provided!")
+                raise ValueError("A Blockchain node needs to be provided!")
 
         if not rpcuser and "rpcuser" in self.config:
             rpcuser = self.config["rpcuser"]

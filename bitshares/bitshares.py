@@ -141,7 +141,8 @@ class Chain(
             chainspec=chainspec,
             **kwargs
         )
-        WalletInterface.__init__(self, 
+        WalletInterface.__init__(
+            self,
             chainspec=chainspec,
             **kwargs)
         BuilderInterface.__init__(
@@ -154,6 +155,12 @@ class Chain(
             transactions made it into a block
         """
         self.blocking = block
+
+    def set_default_account(self, account):
+        """ Set the default account to be used
+        """
+        self._account_cls(account)
+        self.config["default_account"] = account
 
 
 #: Legacy alias (deprecated)

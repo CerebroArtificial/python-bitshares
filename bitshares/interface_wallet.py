@@ -1,3 +1,6 @@
+import logging
+log = logging.getLogger(__name__)
+
 
 class WalletInterface:
 
@@ -9,8 +12,6 @@ class WalletInterface:
     ):
         assert chainspec
 
-        self._privatekey_cls = chainspec.PrivateKey
-        self._account_cls = chainspec.Account
         self._proposalbuilder_cls = chainspec.ProposalBuilder
         self._txbuilder_cls = chainspec.TransactionBuilder
         self.wallet = kwargs.get(
@@ -23,12 +24,6 @@ class WalletInterface:
     # -------------------------------------------------------------------------
     # Wallet stuff
     # -------------------------------------------------------------------------
-    def set_default_account(self, account):
-        """ Set the default account to be used
-        """
-        self._account_cls(account)
-        self.config["default_account"] = account
-
     def newWallet(self, pwd):
         """ Create a new wallet. This method is basically only calls
             :func:`bitshares.wallet.create`.
