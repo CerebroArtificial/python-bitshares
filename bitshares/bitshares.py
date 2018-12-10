@@ -7,18 +7,12 @@ from . import chainspec
 
 from .interface_chain import TxInterface
 from .interface_wallet import WalletInterface
-from .interface_builder import BuilderInterface
 from .interface_connection import InterfaceConnection
 
 log = logging.getLogger(__name__)
 
 
-class Chain(
-    TxInterface,
-    WalletInterface,
-    InterfaceConnection,
-    BuilderInterface
-):
+class Chain(TxInterface, WalletInterface, InterfaceConnection):
     """ Connect to the Blockchain network.
 
         ... note:: This module connects multiple interfaces together for sake
@@ -27,7 +21,6 @@ class Chain(
             * TxInterface,
             * WalletInterface,
             * InterfaceConnection,
-            * BuilderInterface
 
         :param str node: Node to connect to *(optional)*
         :param str rpcuser: RPC user *(optional)*
@@ -110,11 +103,7 @@ class Chain(
     # Below, we enable access to chain specific classes for those
     # classes we inherit
 
-    def __init__(self,
-                 node="",
-                 rpcuser="",
-                 rpcpassword="",
-                 **kwargs):
+    def __init__(self, node="", rpcuser="", rpcpassword="", **kwargs):
 
         self.debug = bool(kwargs.get("debug", False))
         self.offline = bool(kwargs.get("offline", False))
@@ -123,32 +112,16 @@ class Chain(
         self.expiration = int(kwargs.get("expiration", 30))
         self.bundle = bool(kwargs.get("bundle", False))
         self.blocking = bool(kwargs.get("blocking", False))
-        self.config = kwargs.get(
-            "config_store",
-            get_default_config_store()
-        )
+        self.config = kwargs.get("config_store", get_default_config_store())
 
         # Initialize dependencies
         # We here provide "chainspec" as a module that contains
         # all classes that are chain-specific
         InterfaceConnection.__init__(
-            self,
-            node, rpcuser, rpcpassword,
-            chainspec=chainspec,
-            **kwargs)
-        TxInterface.__init__(
-            self,
-            chainspec=chainspec,
-            **kwargs
+            self, node, rpcuser, rpcpassword, chainspec=chainspec, **kwargs
         )
-        WalletInterface.__init__(
-            self,
-            chainspec=chainspec,
-            **kwargs)
-        BuilderInterface.__init__(
-            self,
-            chainspec=chainspec,
-            **kwargs)
+        TxInterface.__init__(self, chainspec=chainspec, **kwargs)
+        WalletInterface.__init__(self, chainspec=chainspec, **kwargs)
 
     def set_blocking(self, block=True):
         """ This sets a flag that forces the broadcast to block until the
